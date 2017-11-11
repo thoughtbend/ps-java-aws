@@ -258,6 +258,9 @@ Resources:
     Properties:
       SubnetId: !Ref TBSubnetElbWest2a
       AllocationId: !GetAtt TBPSEIPForNatGateway.AllocationId
+      Tags:
+      - Key: "Name"
+        Value: "tb-ps-nonprod-natgateway"
 
   TBPSNatGatewayRoute:
     Type: AWS::EC2::Route

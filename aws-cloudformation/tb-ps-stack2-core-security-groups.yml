@@ -1,0 +1,131 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Resources:
+
+  TBPSSecurityGroupDataTargetCache:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !ImportValue TBPSVpc-id
+      GroupDescription: "Secures incoming (ingress) data for cache"
+      Tags:
+      - Key: "Name"
+        Value: "tb-ps-nonprod-sg-data-target-cache"
+
+  TBPSSecurityGroupDataSourceCache:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !ImportValue TBPSVpc-id
+      GroupDescription: "Secures outgoing (egress) data for cache"
+      Tags:
+      - Key: "Name"
+        Value: "tb-ps-nonprod-sg-data-source-cache"
+
+  TBPSOutboundRuleDataSourceCache:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      IpProtocol: tcp
+      FromPort: '6379'
+      ToPort: '6379'
+      DestinationSecurityGroupId:
+        Fn::GetAtt:
+        - TBPSSecurityGroupDataTargetCache
+        - GroupId
+      GroupId:
+        Fn::GetAtt:
+        - TBPSSecurityGroupDataSourceCache
+        - GroupId
+
+  TBPSInboundRuleDataTargetCache:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      IpProtocol: tcp
+      FromPort: '6379'
+      ToPort: '6379'
+      SourceSecurityGroupId:
+        Fn::GetAtt:
+        - TBPSSecurityGroupDataSourceCache
+        - GroupId
+      GroupId:
+        Fn::GetAtt:
+        - TBPSSecurityGroupDataTargetCache
+        - GroupId
+
+  TBPSSecurityGroupDataTargetDatabase:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !ImportValue TBPSVpc-id
+      GroupDescription: "Secures incoming (ingress) data for database"
+      Tags:
+      - Key: "Name"
+        Value: "tb-ps-nonprod-sg-data-target-database"
+
+  TBPSSecurityGroupDataSourceDatabase:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !ImportValue TBPSVpc-id
+      GroupDescription: "Secures outgoing (egress) data for database"
+      Tags:
+      - Key: "Name"
+        Value: "tb-ps-nonprod-sg-data-source-database"
+
+  TBPSOutboundRuleDataSourceDatabase:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      IpProtocol: tcp
+      FromPort: '3306'
+      ToPort: '3306'
+      DestinationSecurityGroupId:
+        Fn::GetAtt:
+        - TBPSSecurityGroupDataTargetDatabase
+        - GroupId
+      GroupId:
+        Fn::GetAtt:
+        - TBPSSecurityGroupDataSourceDatabase
+        - GroupId
+
+  TBPSInboundRuleDataTargetDatabase:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      IpProtocol: tcp
+      FromPort: '3306'
+      ToPort: '3306'
+      SourceSecurityGroupId:
+        Fn::GetAtt:
+        - TBPSSecurityGroupDataSourceDatabase
+        - GroupId
+      GroupId:
+        Fn::GetAtt:
+        - TBPSSecurityGroupDataTargetDatabase
+        - GroupId
+
+  TBPSCacheSubnetGroup:
+    Type: AWS::ElastiCache::SubnetGroup
+    Properties: 
+      Description: "Cache Subnet Group"
+      SubnetIds: 
+        - !ImportValue "TBPSNonProdSubnetDataWest2a-id"
+        - !ImportValue "TBPSNonProdSubnetDataWest2b-id"
+        - !ImportValue "TBPSNonProdSubnetDataWest2c-id"
+
+
+Outputs:
+
+  TBPSSecurityGroupDataTargetCacheOutput:
+    Value: !Ref TBPSSecurityGroupDataTargetCache
+    Export:
+      Name: "TBPSSecurityGroupDataTargetCache-id"
+
+  TBPSSecurityGroupDataSourceCacheOutput:
+    Value: !Ref TBPSSecurityGroupDataSourceCache
+    Export:
+      Name: "TBPSSecurityGroupDataSourceCache-id"
+
+  TBPSSecurityGroupDataTargetDatabaseOutput:
+    Value: !Ref TBPSSecurityGroupDataTargetDatabase
+    Export:
+      Name: "TBPSSecurityGroupDataTargetDatabase-id"
+
+  TBPSSecurityGroupDataSourceDatabaseOutput:
+    Value: !Ref TBPSSecurityGroupDataSourceDatabase
+    Export:
+      Name: "TBPSSecurityGroupDataSourceDatabase-id"
