@@ -1,0 +1,59 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Resources:
+
+  TBPSDBDefualtDBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: TBPSDBDefualtDBSubnetGroup
+      SubnetIds:
+      - !ImportValue TBPSNonProdSubnetDataWest2a-id
+      - !ImportValue TBPSNonProdSubnetDataWest2b-id
+      - !ImportValue TBPSNonProdSubnetDataWest2c-id
+      Tags:
+      - Key: "Name"
+        Value: "tb-ps-db-defualt-dbsubnetgroup"
+
+  TBPSCustomerMasterCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      Engine: aurora
+      MasterUsername: custdbadmin
+      MasterUserPassword: D3f4u1tP4ssword
+      BackupRetentionPeriod: 2
+      StorageEncrypted: false
+      DBSubnetGroupName: !Ref TBPSDBDefualtDBSubnetGroup
+      VpcSecurityGroupIds: 
+      - !ImportValue TBPSSecurityGroupDataTargetDatabase-id
+      Tags:
+      - Key: "Name"
+        Value: "tb-ps-nonprod-customer-master-cluster"
+
+  TBPSCustomerMasterDB:
+    Type: AWS::RDS::DBInstance
+    Properties:
+#      DBName: crm
+      DBClusterIdentifier: !Ref TBPSCustomerMasterCluster
+      DBInstanceIdentifier: customer
+      Engine: aurora
+      DBInstanceClass: db.t2.small   
+      MultiAZ: false
+#      DBSecurityGroups: 
+      PubliclyAccessible: true
+      AllowMajorVersionUpgrade: false
+      AutoMinorVersionUpgrade: false
+#      AllocatedStorage: 10
+      MonitoringInterval: 0
+#      StorageType: gp2
+      Tags:
+      - Key: "Name"
+        Value: "tb-ps-nonprod-customer-master-db"
+
+
+Outputs:
+
+  TBPSDBDefualtDBSubnetGroupOutput:
+    Value: !Ref TBPSDBDefualtDBSubnetGroup
+    Export:
+      Name: "TBPSDBDefualtDBSubnetGroup-id"
+

@@ -1,0 +1,25 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Resources:
+
+  TBPSCustAppKMSMasterKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: "Key used for managing password in application configuration files"
+      Enabled: true
+      EnableKeyRotation: false
+      Tags:
+      - Key: Name
+        Value: AppConfigMSK
+      - Key: Domain
+        Value: ECOM
+      KeyPolicy:
+      
+
+Outputs:
+
+  TBPSCustPpKMSMasterKeyOutput:
+    Value: !Ref TBPSCustAppKMSMasterKey
+    Export:
+      Name: "TBPSCustAppKMSMasterKey-id"
+
