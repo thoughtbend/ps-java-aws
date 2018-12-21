@@ -7,7 +7,7 @@
 		http://www.springframework.org/schema/redis http://www.springframework.org/schema/redis/spring-redis-1.0.xsd">
 
 	<!-- test-redis-cache.y3hpjc.0001.usw2.cache.amazonaws.com:6379 -->
-	<bean id="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory" p:host-name="test-redis-cache.y3hpjc.0001.usw2.cache.amazonaws.com:6379" p:port="6379" />
+	<bean id="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory" p:host-name="localhost:6379" p:port="6379" />
 	
 	<bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate" p:connection-factory-ref="jedisConnectionFactory"/>
 

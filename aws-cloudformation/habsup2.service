@@ -1,0 +1,8 @@
+[Unit]
+Description=The Habitat Supervisor
+
+[Service]
+ExecStart=/bin/hab sup run --peer=hab-bas-lead-dev.wiredbraincoffee-tb.com:9638
+
+[Install]
+WantedBy=default.target

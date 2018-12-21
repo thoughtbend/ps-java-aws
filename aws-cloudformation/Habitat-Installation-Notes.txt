@@ -1,0 +1,12 @@
+Create file habsup.service in /lib/systemd/system/
+[Unit]
+Description=The Habitat Supervisor
+
+[Service]
+ExecStart=/bin/hab sup run
+
+[Install]
+WantedBy=default.target
+
+sudo systemctl enable habsup.service
+sudo systemctl start mouselogger.service

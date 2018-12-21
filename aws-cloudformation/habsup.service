@@ -1,0 +1,8 @@
+[Unit]
+Description=The Habitat Supervisor
+
+[Service]
+ExecStart=/bin/hab sup run --permanent-peer
+
+[Install]
+WantedBy=default.target
