@@ -1,0 +1,358 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+# Need to create an IAM Group for Flow Logs
+# Need to setup the Flow Log
+
+Resources:
+
+  TBPSVpc:
+    Type: "AWS::EC2::VPC"
+    Properties:
+      CidrBlock: 172.32.0.0/16
+      EnableDnsHostnames: true
+      Tags:
+      - Key: "Name"
+        Value: "tb-ps-nonprod-vpc"
+
+  TBPSInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+      - Key: "Name"
+        Value: "tb-ps-nonprod-internetgateway"
+
+  TBPSEIPForNatGateway:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: "vpc"
+
+  TBPSRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref TBPSVpc
+      Tags:
+      - Key: "Name"
+        Value: "tb-ps-nonprod-routetable-public"
+
+  TBPSRouteTableNonPublic:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref TBPSVpc
+      Tags:
+      - Key: "Name"
+        Value: "tb-ps-nonprod-routetable-non-public"
+
+  TBPSVpcIGAssoc:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref TBPSInternetGateway
+      VpcId: !Ref TBPSVpc
+
+  TBPSNetworkAcl:
+    Type: "AWS::EC2::NetworkAcl"
+    Properties:
+      VpcId: !Ref TBPSVpc
+      Tags:
+      - Key: "Name"
+        Value: "tb-ps-nonprod-network-acl"
+
+  TBPSInternetGatewayRoute:
+    Type: AWS::EC2::Route
+    DependsOn: TBPSInternetGateway
+    Properties:
+      RouteTableId: !Ref TBPSRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref TBPSInternetGateway
+
+  # These subnets are using a CIDR rule to allow up to 256 addresses (251 will be available)
+  TBSubnetDataWest2a:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      CidrBlock: 172.32.100.0/24
+      AvailabilityZone: "us-west-2a"
+      VpcId: !Ref TBPSVpc
+      Tags:
+      - Key: "Name"
+        Value: "tb-ps-nonprod-subnet-data-2a"
+
+  TBSubnetDataWest2b:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      CidrBlock: 172.32.101.0/24
+      AvailabilityZone: "us-west-2b"
+      VpcId: !Ref TBPSVpc
+      Tags:
+      - Key: "Name"
+        Value: "tb-ps-nonprod-subnet-data-2b"
+
+  TBSubnetDataWest2c:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      CidrBlock: 172.32.102.0/24
+      AvailabilityZone: "us-west-2c"
+      VpcId: !Ref TBPSVpc
+      Tags:
+      - Key: "Name"
+        Value: "tb-ps-nonprod-subnet-data-2c"
+
+  TBSubnetAppWest2a:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      CidrBlock: 172.32.103.0/24
+      AvailabilityZone: "us-west-2a"
+      VpcId: !Ref TBPSVpc
+      Tags:
+      - Key: "Name"
+        Value: "tb-ps-nonprod-subnet-app-2a"
+
+  TBSubnetAppWest2b:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      CidrBlock: 172.32.104.0/24
+      AvailabilityZone: "us-west-2b"
+      VpcId: !Ref TBPSVpc
+      Tags:
+      - Key: "Name"
+        Value: "tb-ps-nonprod-subnet-app-2b"
+
+  TBSubnetAppWest2c:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      CidrBlock: 172.32.105.0/24
+      AvailabilityZone: "us-west-2c"
+      VpcId: !Ref TBPSVpc
+      Tags:
+      - Key: "Name"
+        Value: "tb-ps-nonprod-subnet-app-2c"
+
+  TBSubnetElbWest2a:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      CidrBlock: 172.32.106.0/24
+      AvailabilityZone: "us-west-2a"
+      VpcId: !Ref TBPSVpc
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: "Name"
+        Value: "tb-ps-nonprod-subnet-elb-2a"
+
+  TBSubnetElbWest2b:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      CidrBlock: 172.32.107.0/24
+      AvailabilityZone: "us-west-2b"
+      VpcId: !Ref TBPSVpc
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: "Name"
+        Value: "tb-ps-nonprod-subnet-elb-2b"
+
+  TBSubnetElbWest2c:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      CidrBlock: 172.32.108.0/24
+      AvailabilityZone: "us-west-2c"
+      VpcId: !Ref TBPSVpc
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: "Name"
+        Value: "tb-ps-nonprod-subnet-elb-2c"
+
+  TBPSSubnetAclAssocData2a:
+    Type: "AWS::EC2::SubnetNetworkAclAssociation"
+    Properties:
+      SubnetId: !Ref TBSubnetDataWest2a
+      NetworkAclId: !Ref TBPSNetworkAcl
+
+  TBPSSubnetAclAssocData2b:
+    Type: "AWS::EC2::SubnetNetworkAclAssociation"
+    Properties:
+      SubnetId: !Ref TBSubnetDataWest2b
+      NetworkAclId: !Ref TBPSNetworkAcl
+
+  TBPSSubnetAclAssocData2c:
+    Type: "AWS::EC2::SubnetNetworkAclAssociation"
+    Properties:
+      SubnetId: !Ref TBSubnetDataWest2c
+      NetworkAclId: !Ref TBPSNetworkAcl
+
+  TBPSSubnetAclAssocApp2a:
+    Type: "AWS::EC2::SubnetNetworkAclAssociation"
+    Properties:
+      SubnetId: !Ref TBSubnetAppWest2a
+      NetworkAclId: !Ref TBPSNetworkAcl
+
+  TBPSSubnetAclAssocApp2b:
+    Type: "AWS::EC2::SubnetNetworkAclAssociation"
+    Properties:
+      SubnetId: !Ref TBSubnetAppWest2b
+      NetworkAclId: !Ref TBPSNetworkAcl
+
+  TBPSSubnetAclAssocApp2c:
+    Type: "AWS::EC2::SubnetNetworkAclAssociation"
+    Properties:
+      SubnetId: !Ref TBSubnetAppWest2c
+      NetworkAclId: !Ref TBPSNetworkAcl
+
+  TBPSSubnetAclAssocElb2a:
+    Type: "AWS::EC2::SubnetNetworkAclAssociation"
+    Properties:
+      SubnetId: !Ref TBSubnetElbWest2a
+      NetworkAclId: !Ref TBPSNetworkAcl
+
+  TBPSSubnetAclAssocElb2b:
+    Type: "AWS::EC2::SubnetNetworkAclAssociation"
+    Properties:
+      SubnetId: !Ref TBSubnetElbWest2b
+      NetworkAclId: !Ref TBPSNetworkAcl
+
+  TBPSSubnetAclAssocElb2c:
+    Type: "AWS::EC2::SubnetNetworkAclAssociation"
+    Properties:
+      SubnetId: !Ref TBSubnetElbWest2c
+      NetworkAclId: !Ref TBPSNetworkAcl
+
+  TBPSNetworkAclEntryHttpInbound01:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref TBPSNetworkAcl
+      Protocol: -1
+      # Egress false is inbound
+      Egress: false
+      RuleNumber: 100
+      CidrBlock: 0.0.0.0/0
+      RuleAction: "allow"
+
+  TBPSNetworkAclEntryHttpOutbound01:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref TBPSNetworkAcl
+      Protocol: -1
+      # Egress true is outbound
+      Egress: true
+      RuleNumber: 100
+      CidrBlock: 0.0.0.0/0
+      RuleAction: "allow"
+
+  TBPSSubnetRouteTableAssocPublicToELB01:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref TBPSRouteTable
+      SubnetId: !Ref TBSubnetElbWest2a
+
+  TBPSSubnetRouteTableAssocPublicToELB02:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref TBPSRouteTable
+      SubnetId: !Ref TBSubnetElbWest2b
+
+  TBPSSubnetRouteTableAssocPublicToELB03:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref TBPSRouteTable
+      SubnetId: !Ref TBSubnetElbWest2c
+
+  TBPSNatGateway:
+    Type: AWS::EC2::NatGateway
+    DependsOn: TBPSEIPForNatGateway
+    Properties:
+      SubnetId: !Ref TBSubnetElbWest2a
+      AllocationId: !GetAtt TBPSEIPForNatGateway.AllocationId
+      Tags:
+      - Key: "Name"
+        Value: "tb-ps-nonprod-natgateway"
+
+  TBPSNatGatewayRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref TBPSRouteTableNonPublic
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref TBPSNatGateway
+
+  TBPSSubnetRouteTableAssocNonPublicToApp01:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref TBPSRouteTableNonPublic
+      SubnetId: !Ref TBSubnetAppWest2a
+
+  TBPSSubnetRouteTableAssocNonPublicToApp02:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref TBPSRouteTableNonPublic
+      SubnetId: !Ref TBSubnetAppWest2b
+
+  TBPSSubnetRouteTableAssocNonPublicToApp03:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref TBPSRouteTableNonPublic
+      SubnetId: !Ref TBSubnetAppWest2c
+
+  TBPSSubnetRouteTableAssocNonPublicToData01:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref TBPSRouteTableNonPublic
+      SubnetId: !Ref TBSubnetDataWest2a
+
+  TBPSSubnetRouteTableAssocNonPublicToData02:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref TBPSRouteTableNonPublic
+      SubnetId: !Ref TBSubnetDataWest2b
+
+  TBPSSubnetRouteTableAssocNonPublicToData03:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref TBPSRouteTableNonPublic
+      SubnetId: !Ref TBSubnetDataWest2c
+
+Outputs:
+
+  TBPSVpcOutput:
+    Value: !Ref TBPSVpc
+    Export:
+      Name: "TBPSVpc-id"
+
+  TBSubnetDataWest2aOutput:
+    Value: !Ref TBSubnetDataWest2a
+    Export:
+      Name: "TBPSNonProdSubnetDataWest2a-id"
+
+  TBSubnetDataWest2bOutput:
+    Value: !Ref TBSubnetDataWest2b
+    Export:
+      Name: "TBPSNonProdSubnetDataWest2b-id"
+
+  TBSubnetDataWest2cOutput:
+    Value: !Ref TBSubnetDataWest2c
+    Export:
+      Name: "TBPSNonProdSubnetDataWest2c-id"
+
+  TBSubnetAppWest2aOutput:
+    Value: !Ref TBSubnetAppWest2a
+    Export:
+      Name: "TBPSNonProdSubnetAppWest2a-id"
+
+  TBSubnetAppWest2bOutput:
+    Value: !Ref TBSubnetAppWest2b
+    Export:
+      Name: "TBPSNonProdSubnetAppWest2b-id"
+
+  TBSubnetAppWest2cOutput:
+    Value: !Ref TBSubnetAppWest2c
+    Export:
+      Name: "TBPSNonProdSubnetAppWest2c-id"
+
+  TBSubnetElbWest2aOutput:
+    Value: !Ref TBSubnetElbWest2a
+    Export:
+      Name: "TBPSNonProdSubnetElbWest2a-id"
+
+  TBSubnetElbWest2bOutput:
+    Value: !Ref TBSubnetElbWest2b
+    Export:
+      Name: "TBPSNonProdSubnetElbWest2b-id"
+
+  TBSubnetElbWest2cOutput:
+    Value: !Ref TBSubnetElbWest2c
+    Export:
+      Name: "TBPSNonProdSubnetElbWest2c-id"

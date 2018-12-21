@@ -1,0 +1,60 @@
+# AMI Install Notes - for MAGGIE / maggie / Maggie
+
+# Install GIT
+sudo yum install git
+
+# Install Chef
+# curl https://omnitruck.chef.io/install.sh | sudo bash -s -- -P chefdk -c stable -v 2.5.3
+curl https://omnitruck.chef.io/install.sh | sudo bash -s -- -P chefdk -c stable -v 3.3.23
+
+# Do I need to configure Chef?
+
+# Downloading JDK
+sudo wget https://download.java.net/java/GA/jdk11/28/GPL/openjdk-11+28_linux-x64_bin.tar.gz
+
+sudo tar xzf openjdk-11+28_linux-x64_bin.tar.gz
+sudo rm -f openjdk-11+28_linux-x64_bin.tar.gz
+cd jdk-11
+sudo alternatives --install /usr/bin/java java /opt/jdk-11/bin/java 2
+# This drives an alternative selection (not sure how this would be scripted)
+sudo alternatives --config java
+sudo alternatives --install /usr/bin/jar jar /opt/jdk-11/bin/jar 2
+sudo alternatives --set jar /opt/jdk-11/bin/jar
+sudo alternatives --set javac /opt/jdk-11/bin/javac
+
+# add the following to /etc/profile
+export JAVA_HOME=/opt/jdk-11
+export JRE_HOME=/opt/jdk-11/jre
+export PATH=$PATH:$JAVA_HOME/bin:$JRE_HOME/bin
+
+
+#########
+# Tomcat
+# 1. Setup groups and users
+sudo groupadd tomcat
+sudo mkdir /opt/tomcat
+sudo useradd -s /bin/nologin -g tomcat -d /opt/tomcat tomcat
+
+# 2. Downloading from a mirror
+sudo wget http://apache.mirrors.hoobly.com/tomcat/tomcat-9/v9.0.12/bin/apache-tomcat-9.0.12.tar.gz
+sudo tar -zxvf apache-tomcat-9.0.12.tar.gz -C /opt/tomcat --strip-components=1
+sudo rm apache-tomcat-9.0.12.tar.gz
+
+# 3. Set permissions
+cd /opt/tomcat
+sudo chgrp -R tomcat conf
+sudo chmod g+rwx conf
+sudo chmod g+r conf/* (#issue)
+sudo chown -R tomcat logs/ temp/ webapps/ work/
+
+sudo chgrp -R tomcat bin
+sudo chgrp -R tomcat lib
+sudo chmod g+rwx bin
+sudo chmod g+r bin/* (#issue)
+
+
+# 4. Setup Service (may need to setup directories)
+sudo nano /etc/systemd/system/tomcat.service
+
+# inside the file 
+

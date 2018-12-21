@@ -1,0 +1,53 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Resources:
+
+  TBPSDBEC2forTomcat:
+    Type: AWS::EC2::Instance
+    Metadata:
+      AWS::CloudFormation::Init:
+        config:
+          packages:
+            rpm:
+              chefdk: "https://packages.chef.io/files/stable/chefdk/3.3.23/el/7/chefdk-3.3.23-1.el7.x86_64.rpm"
+            yum:
+              git: []
+        commands:
+          01-Download GIT Cookbooks:
+            command: "git clone https://github.com/thoughtbend/tb-chef.git"
+            cwd: "~"
+            ignoreErrors: "false"
+    Properties: 
+      InstanceType: t3.small
+      ImageId: ami-0d1000aff9a9bad89
+      # ImageId: ami-a0cfeed8
+      IamInstanceProfile: tbps-ec2-default
+      InstanceInitiatedShutdownBehavior: stop
+      KeyName: pstb-ec2-tomcat
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeleteOnTermination: true
+          DeviceIndex: 0
+          GroupSet: 
+            - "sg-ab83e4d7"
+            - "sg-32810a4c"
+          SubnetId: "subnet-32251954"
+      UserData: 
+        "Fn::Base64":
+          !Sub |
+              #!/bin/bash -xe
+              # Install the files and packages from the metadata
+              curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
+              sudo groupadd hab
+              sudo useradd -g hab hab
+              aws s3 cp s3://pstb-mgmt-installs/habitat/habsup.service .
+              chmod 600 habsup.service
+              cp habsup.service /lib/systemd/system/
+              systemctl enable habsup.service
+              systemctl start habsup.service
+              /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource TBPSDBEC2forTomcat --region ${AWS::Region}
+              # Execute Signal
+              #/opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource TBPSDBEC2forTomcat --region ${AWS::Region}
+      Tags:
+      - Key: "Name"
+        Value: "tb-ps-ec2-default"
